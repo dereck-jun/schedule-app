@@ -1,5 +1,6 @@
 package com.example.schedule.schedule.entity;
 
+import com.example.schedule.comment.entity.Comment;
 import com.example.schedule.global.common.entity.BaseTimeEntity;
 import com.example.schedule.user.entity.User;
 import jakarta.persistence.*;
@@ -10,6 +11,9 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,6 +40,9 @@ public class Schedule extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<Comment> comments = new ArrayList<>();
 
     @Builder
     public Schedule(String title, String body, User user) {
