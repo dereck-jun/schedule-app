@@ -47,7 +47,7 @@ public class UserController {
         return ApiResponse.success(OK, findUser, "계정 단건 조회 성공");
     }
 
-    @GetMapping(value = "/api/v1/users")
+    @GetMapping(value = "/api/v1/users/all")
     public ApiResponse<List<UserDto>> findAllUsers() {
         List<UserDto> findUserDtos = userService.findAllUsers();
         return ApiResponse.success(OK, findUserDtos, "계정 전체 조회 성공");
