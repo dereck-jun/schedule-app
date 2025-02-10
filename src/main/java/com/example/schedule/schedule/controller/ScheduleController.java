@@ -5,6 +5,7 @@ import com.example.schedule.schedule.dto.request.ScheduleCreateRequest;
 import com.example.schedule.schedule.dto.request.SchedulePagingRequest;
 import com.example.schedule.schedule.dto.request.ScheduleUpdateRequest;
 import com.example.schedule.schedule.dto.response.ScheduleDto;
+import com.example.schedule.schedule.dto.response.ScheduleWithCountDto;
 import com.example.schedule.schedule.service.ScheduleService;
 import com.example.schedule.user.dto.response.UserDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,8 +33,8 @@ public class ScheduleController {
     }
 
     @GetMapping("/api/v1/schedules")
-    public ApiResponse<Page<ScheduleDto>> findAllSchedules(@Valid @ModelAttribute SchedulePagingRequest request) {
-        Page<ScheduleDto> scheduleDtoPage = scheduleService.findAllOrderByUpdatedDateTime(request);
+    public ApiResponse<Page<ScheduleWithCountDto>> findAllSchedules(@Valid @ModelAttribute SchedulePagingRequest request) {
+        Page<ScheduleWithCountDto> scheduleDtoPage = scheduleService.findAllOrderByUpdatedDateTime(request);
         return ApiResponse.success(OK, scheduleDtoPage, "일정 전체 조회 성공");
     }
 
