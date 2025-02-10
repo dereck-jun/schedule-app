@@ -3,10 +3,3 @@ spring:
     import:
       - classpath:application-datasource.yml
       - classpath:application-session.yml
-  jpa:
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
