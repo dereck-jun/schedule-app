@@ -30,7 +30,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class LoginFilter extends OncePerRequestFilter {
 
     private static final String USER_PATH = "/api/v1/users";
-    private static final String[] WHITE_LIST = {USER_PATH + "/register", USER_PATH + "/login"};
+    private static final String[] WHITE_LIST = {USER_PATH, USER_PATH + "/login"};
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
