@@ -1,6 +1,7 @@
 package com.example.schedule.user.entity;
 
 import com.example.schedule.global.common.entity.BaseTimeEntity;
+import com.example.schedule.schedule.entity.Schedule;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,18 +21,17 @@ import java.util.List;
 @SQLRestriction(value = "deleted_date_time is null")
 public class User extends BaseTimeEntity {
 
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    public List<Schedule> schedules = new ArrayList<>();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
-
     @Setter
     @Column(nullable = false)
     private String username;
-
     @Column(nullable = false, unique = true)
     private String email;
-
     @Setter
     @Column(nullable = false)
     private String password;
