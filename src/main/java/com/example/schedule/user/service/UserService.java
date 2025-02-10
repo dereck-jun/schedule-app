@@ -28,11 +28,8 @@ public class UserService {
     /* 회원 가입 */
     @Transactional
     public UserDto register(UserRegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailDuplicatedException(List.of(
-                new ErrorDetail(DUPLICATED, "email", "중복된 이메일입니다.")
-            ));
-        }
+        checkEmailDuplicate(request.getEmail());
+        checkUsernameDuplicate(request.getUsername());
         User newUser = saveUser(request);
         return UserDto.from(newUser);
     }
@@ -56,6 +53,8 @@ public class UserService {
         }
         User findUser = getUserOrThrow(userId);
         passwordValidation(request.getPassword(), findUser.getPassword());
+
+        checkUsernameDuplicate(request.getUsername());
         updateUserProfile(request, findUser);
         return UserDto.from(findUser);
     }
@@ -126,6 +125,22 @@ public class UserService {
                 throw new UserUpdateException(List.of(new ErrorDetail(INVALID_INPUT, "changePassword", "이전 비밀번호와 동일할 수 없습니다.")));
             }
             findUser.setPassword(request.getChangePassword());
+        }
+    }
+
+    private void checkUsernameDuplicate(String username) {
+        if (userRepository.existsByUsername(username)) {
+            throw new UsernameDuplicatedException(List.of(
+                new ErrorDetail(DUPLICATED, "username", "중복된 사용자명입니다.")
+            ));
+        }
+    }
+
+    private void checkEmailDuplicate(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailDuplicatedException(List.of(
+                new ErrorDetail(DUPLICATED, "email", "중복된 이메일입니다.")
+            ));
         }
     }
 }

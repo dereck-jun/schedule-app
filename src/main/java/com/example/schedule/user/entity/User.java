@@ -21,20 +21,24 @@ import java.util.List;
 @SQLRestriction(value = "deleted_date_time is null")
 public class User extends BaseTimeEntity {
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
-    public List<Schedule> schedules = new ArrayList<>();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
+
     @Setter
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
+
     @Column(nullable = false, unique = true)
     private String email;
+
     @Setter
     @Column(nullable = false)
     private String password;
+
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    public List<Schedule> schedules = new ArrayList<>();
 
     @Builder
     public User(String username, String email, String password) {
