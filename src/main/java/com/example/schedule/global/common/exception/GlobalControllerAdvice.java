@@ -12,7 +12,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.example.schedule.global.common.exception.ErrorCode.SERVER_NOT_WORK;
 import static jakarta.servlet.http.HttpServletResponse.*;
@@ -24,7 +23,7 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(value = BaseException.class)
     public ErrorResponse baseExceptionHandler(BaseException be, HttpServletResponse response) {
-        List<ErrorDetail> errorDetails = new ArrayList<>(be.getErrorDetail());
+        List<ErrorDetail> errorDetails = new ArrayList<>(be.getErrorDetails());
         HttpStatus status = errorDetails.stream()
             .map(errorDetail -> getCodeAndHttpStatus(response, errorDetail))
             .findFirst()
@@ -68,6 +67,7 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ErrorResponse exceptionHandler(Exception e, HttpServletResponse response) {
+        log.error("[Exception]: {}", e.getLocalizedMessage());
         response.setStatus(SC_INTERNAL_SERVER_ERROR);
         return ErrorResponse.fail(INTERNAL_SERVER_ERROR, List.of(new ErrorDetail(SERVER_NOT_WORK, null, "서버 문제로 인해 실패했습니다.")));
     }

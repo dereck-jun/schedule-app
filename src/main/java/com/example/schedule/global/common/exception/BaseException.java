@@ -7,14 +7,10 @@ import java.util.List;
 @Getter
 public class BaseException extends RuntimeException {
 
-    private List<ErrorDetail> errorDetail;
+    private final List<ErrorDetail> errorDetails;
 
-    public BaseException(String message) {
-        super(message);
-    }
-
-    public BaseException(List<ErrorDetail> errorDetail) {
-        this.errorDetail = errorDetail;
+    public BaseException(List<ErrorDetail> errorDetails) {
+        this.errorDetails = errorDetails;
     }
 
 }
