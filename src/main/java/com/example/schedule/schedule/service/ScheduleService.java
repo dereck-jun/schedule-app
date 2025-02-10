@@ -5,6 +5,7 @@ import com.example.schedule.schedule.dto.request.ScheduleCreateRequest;
 import com.example.schedule.schedule.dto.request.SchedulePagingRequest;
 import com.example.schedule.schedule.dto.request.ScheduleUpdateRequest;
 import com.example.schedule.schedule.dto.response.ScheduleDto;
+import com.example.schedule.schedule.dto.response.ScheduleWithCountDto;
 import com.example.schedule.schedule.entity.Schedule;
 import com.example.schedule.schedule.exception.ScheduleNotFoundException;
 import com.example.schedule.schedule.exception.ScheduleUpdateException;
@@ -50,10 +51,10 @@ public class ScheduleService {
 
     /* 일정 전체 조회 (페이징 적용) */
     @Transactional(readOnly = true)
-    public Page<ScheduleDto> findAllOrderByUpdatedDateTime(SchedulePagingRequest request) {
+    public Page<ScheduleWithCountDto> findAllOrderByUpdatedDateTime(SchedulePagingRequest request) {
         PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize(), Sort.by(Sort.Direction.DESC, "updatedDateTime"));
         Page<Schedule> page = scheduleRepository.findAllByUpdatedDateDesc(pageRequest);
-        return page.map(ScheduleDto::from);
+        return page.map(ScheduleWithCountDto::from);
     }
 
     /* 일정 수정 */
