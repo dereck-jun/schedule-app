@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
 
+    INVALID_INPUT("InvalidInput"),
     MISMATCH("Mismatch"),
     UN_AUTHORIZED("UnAuthorized"),
     NOT_FOUND("NotFound"),

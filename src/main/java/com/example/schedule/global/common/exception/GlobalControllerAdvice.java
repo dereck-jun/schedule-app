@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.schedule.global.common.exception.ErrorCode.SERVER_NOT_WORK;
 import static jakarta.servlet.http.HttpServletResponse.*;
@@ -22,9 +24,12 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(value = BaseException.class)
     public ErrorResponse baseExceptionHandler(BaseException be, HttpServletResponse response) {
-        ErrorDetail errorDetail = be.getErrorDetail();
-        HttpStatus status = getCodeAndHttpStatus(response, errorDetail);
-        return ErrorResponse.fail(status, List.of(errorDetail));
+        List<ErrorDetail> errorDetails = new ArrayList<>(be.getErrorDetail());
+        HttpStatus status = errorDetails.stream()
+            .map(errorDetail -> getCodeAndHttpStatus(response, errorDetail))
+            .findFirst()
+            .orElse(BAD_REQUEST);
+        return ErrorResponse.fail(status, errorDetails);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
