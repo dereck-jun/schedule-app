@@ -5,7 +5,6 @@ import com.example.schedule.global.common.exception.ErrorDetail;
 import com.example.schedule.global.common.response.ErrorResponse;
 import com.example.schedule.user.exception.UserNotLoginException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +22,7 @@ import java.util.List;
 
 import static com.example.schedule.global.common.SessionConst.LOGIN_MEMBER;
 import static com.example.schedule.global.common.exception.ErrorCode.*;
+import static com.fasterxml.jackson.databind.SerializationFeature.*;
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
@@ -55,7 +55,7 @@ public class LoginFilter extends OncePerRequestFilter {
             ErrorResponse errorResponse = ErrorResponse.fail(UNAUTHORIZED, errorDetails);
 
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            objectMapper.registerModule(new JavaTimeModule()).disable(WRITE_DATES_AS_TIMESTAMPS);
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
         }
         log.info("RESPONSE: [{} {}]", request.getMethod(), request.getRequestURI());

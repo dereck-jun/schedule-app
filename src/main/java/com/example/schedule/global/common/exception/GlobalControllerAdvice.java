@@ -76,9 +76,13 @@ public class GlobalControllerAdvice {
         ErrorCode errorCode = errorDetail.getErrorCode();
         HttpStatus status;
         switch (errorCode) {
-            case UN_AUTHORIZED -> {
+            case UN_AUTHORIZED, LOGIN_FAILED -> {
                 response.setStatus(SC_UNAUTHORIZED);
                 status = UNAUTHORIZED;
+            }
+            case FORBIDDEN -> {
+                response.setStatus(SC_FORBIDDEN);
+                status = FORBIDDEN;
             }
             case NOT_FOUND -> {
                 response.setStatus(SC_NOT_FOUND);
