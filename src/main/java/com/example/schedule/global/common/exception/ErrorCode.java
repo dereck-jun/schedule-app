@@ -9,7 +9,9 @@ public enum ErrorCode {
 
     INVALID_INPUT("InvalidInput"),
     MISMATCH("Mismatch"),
+    LOGIN_FAILED("LoginFailed"),
     UN_AUTHORIZED("UnAuthorized"),
+    FORBIDDEN("Forbidden"),
     NOT_FOUND("NotFound"),
     NOT_SUPPORTED("NotSupported"),
     DUPLICATED("Duplicated"),
