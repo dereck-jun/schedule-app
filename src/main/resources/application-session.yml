@@ -1,0 +1,8 @@
+server:
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT}
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        secure: true

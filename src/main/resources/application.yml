@@ -1,1 +1,5 @@
-spring.application.name=schedule
+spring:
+  config:
+    import:
+      - classpath:application-datasource.yml
+      - classpath:application-session.yml
