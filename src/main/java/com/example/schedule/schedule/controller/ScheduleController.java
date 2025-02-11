@@ -27,7 +27,7 @@ public class ScheduleController {
     @PostMapping("/api/v1/schedules")
     public ApiResponse<ScheduleDto> createSchedule(@Valid @RequestBody ScheduleCreateRequest createRequest,
                                                    HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+        UserDto getUserDto = getUserDtoBySession(request);
         ScheduleDto newScheduleDto = scheduleService.createSchedule(createRequest, getUserDto);
         return ApiResponse.success(OK, newScheduleDto, "일정 생성 성공");
     }
@@ -48,19 +48,19 @@ public class ScheduleController {
     public ApiResponse<ScheduleDto> updateSchedule(@PathVariable Long scheduleId,
                                                    @Valid @RequestBody ScheduleUpdateRequest updateRequest,
                                                    HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+        UserDto getUserDto = getUserDtoBySession(request);
         ScheduleDto getScheduleDto = scheduleService.updateSchedule(scheduleId, updateRequest, getUserDto);
         return ApiResponse.success(OK, getScheduleDto, "일정 수정 성공");
     }
 
     @DeleteMapping("/api/v1/schedules/{scheduleId}")
     public ApiResponse<Void> deleteSchedule(@PathVariable Long scheduleId, HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+        UserDto getUserDto = getUserDtoBySession(request);
         scheduleService.deleteSchedule(scheduleId, getUserDto);
         return ApiResponse.success(OK, null, "일정 삭제 성공");
     }
 
-    private UserDto findUserDtoBySession(HttpServletRequest request) {
+    private UserDto getUserDtoBySession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         return (UserDto) session.getAttribute(LOGIN_MEMBER);
     }

@@ -7,12 +7,12 @@ import com.example.schedule.schedule.dto.request.ScheduleUpdateRequest;
 import com.example.schedule.schedule.dto.response.ScheduleDto;
 import com.example.schedule.schedule.dto.response.ScheduleWithCountDto;
 import com.example.schedule.schedule.entity.Schedule;
+import com.example.schedule.schedule.exception.ScheduleAccessDeniedException;
 import com.example.schedule.schedule.exception.ScheduleNotFoundException;
 import com.example.schedule.schedule.exception.ScheduleUpdateException;
 import com.example.schedule.schedule.repository.ScheduleRepository;
 import com.example.schedule.user.dto.response.UserDto;
 import com.example.schedule.user.entity.User;
-import com.example.schedule.user.exception.UserUnAuthorizeException;
 import com.example.schedule.user.exception.UserUpdateException;
 import com.example.schedule.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +21,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 import static com.example.schedule.global.common.exception.ErrorCode.*;
-import static com.example.schedule.global.common.exception.ErrorCode.INVALID_INPUT;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class ScheduleService {
     /* 일정 생성 */
     @Transactional
     public ScheduleDto createSchedule(ScheduleCreateRequest request, UserDto sessionUserDto) {
-        User findUser = userService.getUserOrThrow(sessionUserDto.getUserId());
+        User findUser = userService.findUserByIdOrThrow(sessionUserDto.getUserId());
         Schedule newSchedule = saveSchedule(request, findUser);
         return ScheduleDto.from(newSchedule);
     }
@@ -45,7 +45,7 @@ public class ScheduleService {
     /* 일정 단건 조회 */
     @Transactional(readOnly = true)
     public ScheduleDto findSchedule(Long scheduleId) {
-        Schedule findSchedule = getScheduleOrThrow(scheduleId);
+        Schedule findSchedule = findScheduleByIdOrThrow(scheduleId);
         return ScheduleDto.from(findSchedule);
     }
 
@@ -60,13 +60,13 @@ public class ScheduleService {
     /* 일정 수정 */
     @Transactional
     public ScheduleDto updateSchedule(Long scheduleId, ScheduleUpdateRequest request, UserDto sessionUserDto) {
-        if (request.getTitle() == null && request.getBody() == null) {
+        if (!StringUtils.hasText(request.getTitle()) && !StringUtils.hasText(request.getBody())) {
             throw new ScheduleUpdateException(List.of(
                 new ErrorDetail(INVALID_INPUT, "title", "모든 필드가 비어있을 수 없습니다."),
                 new ErrorDetail(INVALID_INPUT, "body", "모든 필드가 비어있을 수 없습니다.")
             ));
         }
-        Schedule findSchedule = getScheduleOrThrow(scheduleId);
+        Schedule findSchedule = findScheduleByIdOrThrow(scheduleId);
         checkAuthorization(findSchedule, sessionUserDto);
         updateSchedule(request, findSchedule);
         return ScheduleDto.from(findSchedule);
@@ -75,13 +75,13 @@ public class ScheduleService {
     /* 일정 삭제 */
     @Transactional
     public void deleteSchedule(Long scheduleId, UserDto sessionUserDto) {
-        Schedule findSchedule = getScheduleOrThrow(scheduleId);
+        Schedule findSchedule = findScheduleByIdOrThrow(scheduleId);
         checkAuthorization(findSchedule, sessionUserDto);
         scheduleRepository.delete(findSchedule);
     }
 
     /* 타 도메인에서 Entity 자체를 필요로 하기 때문에 public 제한자로 생성 */
-    public Schedule getScheduleOrThrow(Long scheduleId) {
+    public Schedule findScheduleByIdOrThrow(Long scheduleId) {
         return scheduleRepository.findById(scheduleId)
             .orElseThrow(() -> new ScheduleNotFoundException(List.of(
                 new ErrorDetail(NOT_FOUND, null, "요청에 해당하는 일정을 찾을 수 없습니다.")
@@ -90,8 +90,8 @@ public class ScheduleService {
 
     private void checkAuthorization(Schedule schedule, UserDto sessionUserDto) {
         if (!schedule.getUser().getId().equals(sessionUserDto.getUserId())) {
-            throw new UserUnAuthorizeException(List.of(
-                new ErrorDetail(UN_AUTHORIZED, null, "해당 기능을 수행하기 위한 권한이 없습니다.")
+            throw new ScheduleAccessDeniedException(List.of(
+                new ErrorDetail(FORBIDDEN, null, "해당 기능을 수행하기 위한 권한이 없습니다.")
             ));
         }
     }
@@ -113,7 +113,7 @@ public class ScheduleService {
 
         if (request.getBody() != null) {
             if (findSchedule.getBody().equals(request.getBody())) {
-                throw new UserUpdateException(List.of(
+                throw new ScheduleUpdateException(List.of(
                     new ErrorDetail(INVALID_INPUT, "body", "이전 내용과 동일할 수 없습니다.")
                 ));
             }
