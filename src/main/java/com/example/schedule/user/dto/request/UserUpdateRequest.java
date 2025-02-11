@@ -22,7 +22,7 @@ public class UserUpdateRequest {
     @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
     private final String changePassword;
 
-    public UserUpdateRequest(String username, String password, @Nullable String changePassword) {
+    public UserUpdateRequest(@Nullable String username, String password, @Nullable String changePassword) {
         this.username = username;
         this.password = password;
         this.changePassword = changePassword;

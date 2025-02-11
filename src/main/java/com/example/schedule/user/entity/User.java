@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "users")
 @SQLDelete(sql = "update users set deleted_date_time = current_timestamp where user_id = ?")
-@SQLRestriction(value = "deleted_date_time is null")
 public class User extends BaseTimeEntity {
 
     @Id

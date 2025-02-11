@@ -55,15 +55,24 @@ public class UserController {
 
     @PatchMapping(value = "/api/v1/users/{userId}")
     public ApiResponse<UserDto> updateUserProfile(@PathVariable Long userId,
-                                                  @Valid @RequestBody UserUpdateRequest updateRequest) {
-        UserDto updatedUserDto = userService.updateUserProfile(userId, updateRequest);
+                                                  @Valid @RequestBody UserUpdateRequest updateRequest,
+                                                  HttpServletRequest request) {
+        UserDto getUserDto = getUserDtoBySession(request);
+        UserDto updatedUserDto = userService.updateUserProfile(userId, updateRequest, getUserDto);
         return ApiResponse.success(OK, updatedUserDto, "계정 프로필 수정 성공");
     }
 
     @PostMapping(value = "/api/v1/users/{userId}/delete")
     public ApiResponse<Void> deleteUser(@PathVariable Long userId,
-                                        @Valid @RequestBody UserDeleteRequest deleteRequest) {
-        userService.deleteUser(userId, deleteRequest);
+                                        @Valid @RequestBody UserDeleteRequest deleteRequest,
+                                        HttpServletRequest request) {
+        UserDto getUserDto = getUserDtoBySession(request);
+        userService.deleteUser(userId, deleteRequest, getUserDto);
         return ApiResponse.success(OK, null, "계정 삭제 성공");
+    }
+
+    private UserDto getUserDtoBySession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return (UserDto) session.getAttribute(LOGIN_MEMBER);
     }
 }
