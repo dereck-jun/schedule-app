@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 import static com.example.schedule.global.common.SessionConst.LOGIN_MEMBER;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -28,7 +27,7 @@ public class CommentController {
     public ApiResponse<CommentDto> createComment(@PathVariable Long scheduleId,
                                                  @Valid @RequestBody CommentCreateRequest createRequest,
                                                  HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+        UserDto getUserDto = getUserDtoBySession(request);
         CommentDto commentDto = commentService.createComment(scheduleId, createRequest, getUserDto);
         return ApiResponse.success(OK, commentDto, "댓글 생성 성공");
     }
@@ -41,24 +40,24 @@ public class CommentController {
 
     @PatchMapping("/api/v1/schedules/{scheduleId}/comments/{commentId}")
     public ApiResponse<CommentDto> updateComment(@PathVariable Long scheduleId,
-                                                    @PathVariable Long commentId,
-                                                    @Valid @RequestBody CommentUpdateRequest updateRequest,
-                                                    HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+                                                 @PathVariable Long commentId,
+                                                 @Valid @RequestBody CommentUpdateRequest updateRequest,
+                                                 HttpServletRequest request) {
+        UserDto getUserDto = getUserDtoBySession(request);
         CommentDto commentDto = commentService.updateComment(scheduleId, commentId, updateRequest, getUserDto);
         return ApiResponse.success(OK, commentDto, "댓글 수정 성공");
     }
 
     @DeleteMapping("/api/v1/schedules/{scheduleId}/comments/{commentId}")
     public ApiResponse<Void> deleteComment(@PathVariable Long scheduleId,
-                              @PathVariable Long commentId,
-                              HttpServletRequest request) {
-        UserDto getUserDto = findUserDtoBySession(request);
+                                           @PathVariable Long commentId,
+                                           HttpServletRequest request) {
+        UserDto getUserDto = getUserDtoBySession(request);
         commentService.deleteComment(scheduleId, commentId, getUserDto);
         return ApiResponse.success(OK, null, "댓글 삭제 성공");
     }
 
-    private UserDto findUserDtoBySession(HttpServletRequest request) {
+    private UserDto getUserDtoBySession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         return (UserDto) session.getAttribute(LOGIN_MEMBER);
     }
