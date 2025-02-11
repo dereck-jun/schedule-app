@@ -28,13 +28,11 @@
 
 - 데이터베이스: MySQL 8.3.0
 
-## 📖 API 명세서
-
-
+## 📖 [API 명세서](https://documenter.getpostman.com/view/32837359/2sAYXBEeQb)
 
 ## 🗂 ERD
 
-![일정 관리 애플리케이션 ERD](https://github.com/user-attachments/assets/eb468902-9da7-4bed-b974-afcfbeef1289)
+![일정 관리 애플리케이션 ERD](https://github.com/user-attachments/assets/6e7870ab-096f-40f1-9655-9db1428818d2)
 
 ## 🔫 트러블 슈팅
-[일정 관리 애플리케이션 심화]
+[일정 관리 애플리케이션 심화](https://velog.io/@dereck-jun/%EC%9D%BC%EC%A0%95-%EA%B4%80%EB%A6%AC-%EC%95%A0%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98-%EC%8B%AC%ED%99%94)
