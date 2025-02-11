@@ -5,9 +5,9 @@ import com.example.schedule.global.common.exception.ErrorDetail;
 
 import java.util.List;
 
-public class UserUnAuthorizeException extends BaseException {
+public class UserAccessDeniedException extends BaseException {
 
-    public UserUnAuthorizeException(List<ErrorDetail> errorDetail) {
+    public UserAccessDeniedException(List<ErrorDetail> errorDetail) {
         super(errorDetail);
     }
 }

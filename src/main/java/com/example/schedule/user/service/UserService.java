@@ -24,10 +24,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    
+
     /* 회원 가입 */
     @Transactional
     public UserDto register(UserRegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail()) && userRepository.existsByUsername(request.getUsername())) {
+            throw new EmailDuplicatedException(List.of(
+                new ErrorDetail(DUPLICATED, "email", "중복된 이메일입니다."),
+                new ErrorDetail(DUPLICATED, "username", "중복된 사용자명입니다.")
+            ));
+        }
         checkEmailDuplicate(request.getEmail());
         checkUsernameDuplicate(request.getUsername());
         User newUser = saveUser(request);
@@ -37,32 +43,49 @@ public class UserService {
     /* 로그인 */
     @Transactional(readOnly = true)
     public UserDto login(UserLoginRequest request) {
-        User user = getUserByEmail(request.getEmail());
-        passwordValidation(request.getPassword(), user.getPassword());
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new UserLoginFailedException(List.of(
+                new ErrorDetail(LOGIN_FAILED, null, "로그인에 실패하였습니다.")
+            )));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserLoginFailedException(List.of(
+                new ErrorDetail(LOGIN_FAILED, null, "로그인에 실패하였습니다.")
+            ));
+        }
         return UserDto.from(user);
     }
 
     /* 유저 프로필 수정 */
     @Transactional
-    public UserDto updateUserProfile(Long userId, UserUpdateRequest request) {
+    public UserDto updateUserProfile(Long userId, UserUpdateRequest request, UserDto sessionUserDto) {
+        checkUserPermission(userId, sessionUserDto);
         if (request.getUsername() == null && request.getChangePassword() == null) {
             throw new UserUpdateException(List.of(
                 new ErrorDetail(INVALID_INPUT, "username", "모든 필드가 비어있을 수 없습니다."),
                 new ErrorDetail(INVALID_INPUT, "changePassword", "모든 필드가 비어있을 수 없습니다.")
             ));
         }
-        User findUser = getUserOrThrow(userId);
+        User findUser = findUserByIdOrThrow(userId);
         passwordValidation(request.getPassword(), findUser.getPassword());
 
-        checkUsernameDuplicate(request.getUsername());
-        updateUserProfile(request, findUser);
+        if (request.getUsername() != null) {
+            checkPreviousUsername(request.getUsername(), findUser);
+            checkUsernameDuplicate(request.getUsername());
+            findUser.setUsername(request.getUsername());
+        }
+
+        if (request.getChangePassword() != null) {
+            checkPreviousPassword(request.getChangePassword(), findUser);
+            findUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         return UserDto.from(findUser);
     }
 
     /* 유저 단건 조회 */
     @Transactional(readOnly = true)
     public UserDto findUser(Long userId) {
-        User findUser = getUserOrThrow(userId);
+        User findUser = findUserByIdOrThrow(userId);
         return UserDto.from(findUser);
     }
 
@@ -77,18 +100,33 @@ public class UserService {
 
     /* 유저 삭제 */
     @Transactional
-    public void deleteUser(Long userId, UserDeleteRequest request) {
-        User findUser = getUserOrThrow(userId);
+    public void deleteUser(Long userId, UserDeleteRequest request, UserDto sessionUserDto) {
+        checkUserPermission(userId, sessionUserDto);
+        User findUser = findUserByIdOrThrow(userId);
         passwordValidation(request.getPassword(), findUser.getPassword());
         userRepository.delete(findUser);
     }
 
+    private void checkUserPermission(Long userId, UserDto sessionUserDto) {
+        if (!userId.equals(sessionUserDto.getUserId())) {
+            throw new UserAccessDeniedException(List.of(
+                new ErrorDetail(FORBIDDEN, null, "해당 기능을 수행하기 위한 권한이 없습니다.")
+            ));
+        }
+    }
+
     /* 타 도메인에서 Entity 자체를 필요로 하기 때문에 생성 */
-    public User getUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
+    public User findUserByIdOrThrow(Long userId) {
+        return userRepository.findUserById(userId)
             .orElseThrow(() -> new UserNotFoundException(List.of(
                 new ErrorDetail(NOT_FOUND, null, "요청에 해당하는 유저를 찾을 수 없습니다.")
             )));
+    }
+
+    private User saveUser(UserRegisterRequest request) {
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        return userRepository.save(
+            User.of(request.getUsername(), request.getEmail(), encodedPassword));
     }
 
     private void passwordValidation(String requestPassword, String savedPassword) {
@@ -99,32 +137,11 @@ public class UserService {
         }
     }
 
-    private User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new EmailNotFoundException(List.of(
-                new ErrorDetail(NOT_FOUND, "email", "요청에 해당하는 이메일을 찾을 수 없습니다.")
-            )));
-    }
-
-    private User saveUser(UserRegisterRequest request) {
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        return userRepository.save(
-            User.of(request.getUsername(), request.getEmail(), encodedPassword));
-    }
-
-    private void updateUserProfile(UserUpdateRequest request, User findUser) {
-        if (request.getUsername() != null) {
-            if (findUser.getUsername().equals(request.getUsername())) {
-                throw new UserUpdateException(List.of(new ErrorDetail(INVALID_INPUT, "username", "이전 사용자명과 동일할 수 없습니다.")));
-            }
-            findUser.setUsername(request.getUsername());
-        }
-
-        if (request.getChangePassword() != null) {
-            if (passwordEncoder.matches(findUser.getPassword(), request.getChangePassword())) {
-                throw new UserUpdateException(List.of(new ErrorDetail(INVALID_INPUT, "changePassword", "이전 비밀번호와 동일할 수 없습니다.")));
-            }
-            findUser.setPassword(request.getChangePassword());
+    private void checkPreviousPassword(String password, User findUser) {
+        if (passwordEncoder.matches(findUser.getPassword(), password)) {
+            throw new UserUpdateException(List.of(
+                new ErrorDetail(INVALID_INPUT, "changePassword", "이전 비밀번호와 동일할 수 없습니다.")
+            ));
         }
     }
 
@@ -140,6 +157,14 @@ public class UserService {
         if (userRepository.existsByEmail(email)) {
             throw new EmailDuplicatedException(List.of(
                 new ErrorDetail(DUPLICATED, "email", "중복된 이메일입니다.")
+            ));
+        }
+    }
+
+    private void checkPreviousUsername(String username, User findUser) {
+        if (findUser.getUsername().equals(username)) {
+            throw new UserUpdateException(List.of(
+                new ErrorDetail(INVALID_INPUT, "username", "이전 사용자명과 동일할 수 없습니다.")
             ));
         }
     }
